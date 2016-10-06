@@ -49,9 +49,9 @@ return 0;
 #define def_obstacle_detection(p_data,  urg) obstacle_detection( p_data,  urg, sizeof((p_data[0]))/sizeof(p_data[0][0]), sizeof((p_data))/sizeof(p_data[0])) 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
-void obstacle_detection(int **p_data, urg_t urg,int x_division_coun,int y_division_coun)
+void obstacle_detection(int **p_data, urg_t urg)
 {
-	printf("(%d,%d)\n", x_division_coun, y_division_coun);
+	//printf("(%d,%d)\n", x_division_coun, y_division_coun);
 	int URG_L = 4000;															//URGの測定距離
 	int length_data_size;														//測定点の数
 	long *length_data;															//測定距離の格納先
@@ -592,7 +592,7 @@ main(int argc, char *argv[])
 
 
 	// \~japanese "COM1" は、センサが認識されているデバイス名にする必要がある
-	const char connect_device[] = "COM11";
+	const char connect_device[] = "COM13";
 	const long connect_baudrate = 115200;
 
 	// \~japanese センサに対して接続を行う。
@@ -610,7 +610,7 @@ main(int argc, char *argv[])
 	// \~japanese センサから距離データを取得する。
 
 	printf("(%d,%d)", sizeof((p_data[0])) / sizeof(p_data[0][0]), sizeof(p_data) / sizeof(p_data[0]));
-	obstacle_detection(p_data, urg,x_division_coun,y_division_coun);
+	obstacle_detection(p_data, urg);
 	printf("%d\n",MakeAvoidingDirection(p_data, x_division_coun, y_division_coun));
 
 
