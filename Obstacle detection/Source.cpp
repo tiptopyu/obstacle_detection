@@ -49,6 +49,14 @@ return 0;
 #define def_obstacle_detection(p_data,  urg) obstacle_detection( p_data,  urg, sizeof((p_data[0]))/sizeof(p_data[0][0]), sizeof((p_data))/sizeof(p_data[0])) 
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+/*
+obstacle_detection(int **p_data, urg_t urg)
+int **p_data 点群の有無を格納する配列
+urg_t URGセンサーのハンドル
+
+障害物検知を行うプログラム
+
+*/
 void obstacle_detection(int **p_data, urg_t urg)
 {
 	//printf("(%d,%d)\n", x_division_coun, y_division_coun);
@@ -71,193 +79,8 @@ void obstacle_detection(int **p_data, urg_t urg)
 	length_data_size = urg_get_distance(&urg, length_data, NULL);				//測定した点群の距離取得
 	urg_distance_min_max(&urg, &min_distance, &max_distance);					//測定可能範囲の定義
 
-	for (i = 0; i < length_data_size; ++i) {
+	
 
-		// \~japanese その距離データのラジアン角度を求め、X, Y の座標値を計算する
-		double radian;
-		long length;
-		int x;
-		int y;
-
-		radian = urg_index2rad(&urg, i);
-		//printf("%lf\n", radian);
-		length = length_data[i];
-		// \todo check length is valid
-
-		if ((length > min_distance) && (length < max_distance))
-		{
-			if (radian<M_PI / 2 && radian>-M_PI / 2)
-			{
-				p_x = (length * cos(radian)) / Disx_resolution;
-				p_y = ((length * sin(radian)) + URG_L) / Disy_resolution;
-				
-				
-				p_data[p_y][p_x] = 1;
-				old_border_x = p_x;
-				old_border_y = p_y;
-				slope = (double)(p_x + 0.5 - center[0]) / (p_y + 0.5 - center[1]);
-				if (abs(slope)<=1)
-				{
-					if (slope < 0)
-					{//yマイナス方向に進行
-						
-						while (old_border_x >= 0)
-						{
-
-							//Sleep(100);
-							border_y = old_border_x / slope + center[1];
-							for (old_border_y = floor(old_border_y); old_border_y < ceil(border_y); old_border_y++)
-							{
-								
-								
-								if (old_border_y >= 0 && p_data[(int)old_border_y][(int)old_border_x] == 2)
-									p_data[(int)old_border_y][(int)old_border_x] = 0;
-							}
-							old_border_y = border_y;
-							old_border_x--;
-						
-						
-						}
-						
-						/*
-						border_y = p_y-1;
-						border_x = (border_y - center[1]) * slope;
-						if (p_data[p_y - 1][p_x]!=1)
-							p_data[(int)border_y][p_x] = 2;
-						
-						
-							border = border_x;
-							border=ceil(border);
-							printf("%lf", (border - border_x) / 1);
-							//while (border_y==0||border_x==19)
-							{
-							
-							if (abs(slope)<(border - border_x))
-							{
-								printf("(%d,%d)", p_x, p_y);
-								printf("(%lf,%lf,%lf,%lf)", slope, border_x, border_y, border);
-								border_y--;
-								border_x = (border_y - center[1]) * slope;
-								p_data[(int)border_y][(int)border] = 2;
-								border = border_x;
-								border = ceil(border);
-							}else
-							{
-								
-							}
-						}
-						*/
-					}
-					else
-					{//yプラス方向に進行
-						
-						while (old_border_x >= 0)
-						{
-							
-							border_y = old_border_x / slope + center[1];
-
-							for (old_border_y = floor(old_border_y); old_border_y >= floor(border_y); old_border_y--)
-							{
-								
-								if (old_border_y <= 39 && p_data[(int)old_border_y][(int)old_border_x] == 2)
-									p_data[(int)old_border_y][(int)old_border_x] = 0;
-							}
-							old_border_y = border_y;
-							old_border_x--;
-
-
-						}
-					}
-					
-				}
-				else
-				{//xプラス方向に進行
-					
-					if (slope == 1)
-					{
-						
-						for (; old_border_x > 0; old_border_x--, old_border_y--)
-						{
-							
-							if ( p_data[(int)old_border_y][(int)old_border_x] == 2)
-							{
-								
-								p_data[(int)old_border_y][(int)old_border_x] = 0;
-							}
-						}
-					}
-					if (slope < 0)
-					{
-						
-						while (old_border_x >= 0)
-						{
-							//Sleep(100);
-							border_x = (old_border_y + 1- center[1]) * slope + center[0];
-
-							for (old_border_x = floor(old_border_x); old_border_x >= floor(border_x); old_border_x--)
-							{
-								
-								if (old_border_x <= 19 && p_data[(int)old_border_y][(int)old_border_x] == 2)
-								{
-									
-									p_data[(int)old_border_y][(int)old_border_x] = 0;
-								}
-
-							}
-							old_border_y++;
-							old_border_x = border_x;
-
-							
-						}
-					}
-					else
-					{
-						printf("\n(%d,%d)", (int)old_border_x, (int)old_border_y);
-						while (old_border_x >= 0)
-						{
-							//Sleep(100);
-							border_x = (old_border_y + 1 - center[1]) * slope + center[0];
-
-							for (old_border_x = floor(old_border_x); old_border_x >= floor(border_x); old_border_x--)
-							{
-
-								if (old_border_x <= 19 && p_data[(int)old_border_y][(int)old_border_x] == 2)
-								{
-
-									p_data[(int)old_border_y][(int)old_border_x] = 0;
-								}
-
-							}
-							old_border_y--;
-							old_border_x = border_x;
-
-
-						}
-					}
-				}
-				
-				if (old_p_x != p_x || old_p_y != p_y)
-				{
-					//printf("(%d,%d)", p_x, p_y);
-					//printf("(%lf,%lf,%lf)\n", slope, border_x, border_y);
-					
-				}
-				old_p_x = p_x;
-				old_p_y = p_y;
-
-			}
-
-		}
-
-	}
-	printf("\n");
-	for (j = 0; j <20 ; j++)
-	{
-		for (i = 0; i <40 ; i++)
-		{
-			printf("%d,", p_data[i][j]);
-		}
-	}
 	
 }
 void obstacle_detection2(int **p_data, urg_t urg, int x_division_coun, int y_division_coun)
@@ -559,6 +382,9 @@ int MakeAvoidingDirection(int **map, int line, int row){
 	}
 
 }
+
+
+
 int
 main(int argc, char *argv[])
 {
