@@ -7,12 +7,15 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-int obstacle_detection(int **p_data, urg_t urg)
+int obstacle_detection(urg_t urg)
 {
 	int URG_L = 4000;	//URG測定距離
 	int length_data_size;	//測定点の数
 	long *length_data;		//測定距離の格納先
 	long min_distance, max_distance;	//測定可能距離
+
+	int **p_data;
+
 	int i, j;
 	int p_x, p_y;
 	double slope;
@@ -22,6 +25,19 @@ int obstacle_detection(int **p_data, urg_t urg)
 	int center=y_division ;//センサ現在位置
 	double border_x = 0, border_y = 0, old_border_x, old_border_y;//境界線判別用変数
 
+	p_data = (int **)malloc(sizeof(int *)*y_division*2);
+	for (i = 0; i < y_division*2; i++)
+	{
+		p_data[i] = (int *)malloc(sizeof(int *)*x_division);
+	}
+	for (j = 0; j <x_division; j++)
+	{
+		for (i = 0; i <y_division*2; i++)
+		{
+			p_data[i][j] = 2;
+		}
+
+	}
 	length_data = (long *)malloc(sizeof(long) * urg_max_data_size(&urg));
 	urg_start_measurement(&urg, URG_DISTANCE, 1, 0);
 	length_data_size = urg_get_distance(&urg, length_data, NULL);				//測定した点群の距離取得
